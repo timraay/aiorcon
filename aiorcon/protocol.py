@@ -17,7 +17,7 @@ class RCONProtocol(asyncio.Protocol):
                  timeout=None, close_on_timeout=True):
         self.password = password
         self._loop = loop
-        self._connection_lost_cb = connection_lost_cb
+        self._connection_lost_cb = connection_lost_cb if callable(connection_lost_cb) else lambda n: None
         self._multiple_packet = multiple_packet
         self._timeout = timeout
         self._close_on_timeout = close_on_timeout
