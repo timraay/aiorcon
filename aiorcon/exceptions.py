@@ -24,6 +24,9 @@ class RCONTimeoutError(RCONError):
     """Raised when a timeout occurs waiting for a response."""
 
 
+class RCONConnectionError(RCONError):
+    """Raised when no connection can be made."""
+
 class RCONAuthenticationError(RCONError):
     """Raised for failed authentication.
     :ivar bool banned: signifies whether the authentication failed due to

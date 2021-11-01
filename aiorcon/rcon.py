@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from aiorcon.exceptions import RCONAuthenticationError, RCONError, RCONClosedError
+from aiorcon.exceptions import RCONAuthenticationError, RCONError, RCONClosedError, RCONConnectionError
 from aiorcon.protocol import RCONProtocol
 log = logging.getLogger(__name__)
 
@@ -8,11 +8,12 @@ log = logging.getLogger(__name__)
 class RCON:
     @classmethod
     async def create(cls, host, port, password, loop=None,
-                     auto_reconnect_attempts=-1, auto_reconnect_delay=5, *,
-                     multiple_packet=True, timeout=None, auto_reconnect_cb=None):
+                     auto_reconnect_attempts=0, auto_reconnect_delay=5, *,
+                     multiple_packet=False, timeout=5, auto_reconnect_cb=None):
         rcon = cls()
         rcon.host = host
         rcon.port = port
+        rcon.timeout = timeout
         rcon._loop = loop or asyncio.get_event_loop()
         rcon._auto_reconnect_attempts = auto_reconnect_attempts
         rcon._auto_reconnect_delay = auto_reconnect_delay
@@ -33,7 +34,12 @@ class RCON:
         return rcon
 
     async def _connect(self):
-        _, protocol = await self._loop.create_connection(self.protocol_factory, self.host, self.port)
+        try:
+            _, protocol = await asyncio.wait_for(self._loop.create_connection(self.protocol_factory, self.host, self.port), timeout=self.timeout)
+        except asyncio.TimeoutError:
+            raise RCONConnectionError("Address %s could not be resolved" % self.host)
+        except ConnectionRefusedError:
+            raise RCONConnectionError("The server refused connection over port %s" % self.port)
         await protocol.authenticate()
         self.protocol = protocol
 

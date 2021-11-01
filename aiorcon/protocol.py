@@ -78,6 +78,8 @@ class RCONProtocol(asyncio.Protocol):
             res = await self._receive()
         except ConnectionResetError:
             raise RCONAuthenticationError(True)
+        except RCONClosedError:
+            raise RCONAuthenticationError(False)
 
         self._buffer.clear()  # Sometimes an empty response is sent as well, this gets rid of that
         if res.id == -1:
