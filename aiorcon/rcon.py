@@ -77,7 +77,7 @@ class RCON:
         return getattr(self.protocol, name)
 
     def __repr__(self):
-        return 'RCON(host=%r, port=%r, password=%r)' % (self.host, self.port, self.password)
+        return 'RCON(host=%r, port=%r, password=%r)' % (self.host, self.port, "*"*len(self.password))
 
     def close(self):
         """
@@ -87,3 +87,6 @@ class RCON:
         if self._reconnecting and not self._reconnecting.done():
             self._reconnecting.set_exception(RCONClosedError("The RCON connection was closed."))
         self.protocol.close()
+
+    def get_new_messages(self):
+        return [msg.text for msg in self.protocol._buffer.read_chat_messages()]

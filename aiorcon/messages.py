@@ -16,6 +16,7 @@ class RCONMessage(object):
         """Message types corresponding to ``SERVERDATA_`` constants."""
 
         RESPONSE_VALUE = 0
+        SQUAD_CHAT_STREAM = 1
         AUTH_RESPONSE = 2
         EXECCOMMAND = 2
         AUTH = 3
@@ -136,6 +137,7 @@ class ResponseBuffer(object):
         self.responses = OrderedDict()
         self._partial_responses = defaultdict(list)
         self.multiple_packet = multiple_packet
+        self.chat_messages = list()
 
     def pop(self, id_=None):
         """Pop first received message from the buffer, or the message
@@ -185,6 +187,8 @@ class ResponseBuffer(object):
                             self.responses[message.id] += message
                         else:
                             self.responses[message.id] = message
+                elif message.type is message.Type.SQUAD_CHAT_STREAM:
+                    self.chat_messages.append(message)
                 else:
                     self.responses[message.id] = message
 
@@ -195,3 +199,8 @@ class ResponseBuffer(object):
         for response_list in self._partial_responses.values():
             if len(response_list) > ResponseBuffer.PARTIAL_RESPONSE_CAP:
                 del response_list[:]
+
+    def read_chat_messages(self):
+        res = self.chat_messages
+        self.chat_messages = []
+        return res
