@@ -10,7 +10,7 @@ from aiorcon.exceptions import RCONMessageError, RCONError
 class RCONMessage(object):
     """Represents a RCON request or response."""
 
-    ENCODING = "ascii"
+    ENCODING = "utf-8"
 
     class Type(enum.IntEnum):
         """Message types corresponding to ``SERVERDATA_`` constants."""
@@ -51,24 +51,18 @@ class RCONMessage(object):
     @property
     def text(self):
         """Get the body of the message as Unicode.
-        :raises UnicodeDecodeError: if the body cannot be decoded as ASCII.
+        :raises UnicodeDecodeError: if the body cannot be decoded as UTF-8.
         :returns: the body of the message as a Unicode string.
-        .. note::
-            It has been reported that some servers may not return valid
-            ASCII as they're documented to do so. Therefore you should
-            always handle the potential :exc:`UnicodeDecodeError`.
-            If the correct encoding is known you can manually decode
-            :attr:`body` for your self.
         """
         return self.body.decode(self.ENCODING)
 
     @text.setter
     def text(self, text):
         """Set the body of the message as Unicode.
-        This will attempt to encode the given text as ASCII and set it as the
+        This will attempt to encode the given text as UTF-8 and set it as the
         body of the message.
         :param str text: the Unicode string to set the body as.
-        :raises UnicodeEncodeError: if the string cannot be encoded as ASCII.
+        :raises UnicodeEncodeError: if the string cannot be encoded as UTF-8.
         """
         self.body = text.encode(self.ENCODING)
 
@@ -201,6 +195,9 @@ class ResponseBuffer(object):
                 del response_list[:]
 
     def read_chat_messages(self):
+        """Pop all chat messages currently stored by the buffer.
+        :returns: a list of :class:`RCONMessage`.
+        """
         res = self.chat_messages
         self.chat_messages = []
         return res
